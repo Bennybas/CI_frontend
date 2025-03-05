@@ -2,18 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { MessageCircle, Plus, Share2, Check, BrainCog } from 'lucide-react';
 
 const NewsPage2 = ({ passedCompetitors = [], switchPage }) => {
-    const [activeTab, setActiveTab] = useState('Latest News');
-    const [companiesData, setCompaniesData] = useState([]);
+    const [companiesData, setCompaniesData] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [newsletterItems, setNewsletterItems] = useState([]);
-
-    // Buttons for tabs
-    const buttons = [
-        { title: "Latest News", path: "Latest News" },
-        { title: "Website Content", path: "Website Content" },
-        { title: "Additional Sources", path: "Additional Sources" },
-        { title: "Regulatory", path: "Regulatory" }
+    const [activeTabsByCompany, setActiveTabsByCompany] = useState({});
+    
+    // Tabs configuration
+    const tabs = [
+        'Latest News',
+        'Website Content', 
+        'Additional Sources', 
+        'Regulatory'
     ];
 
     // Load existing newsletter items on component mount
@@ -24,7 +24,6 @@ const NewsPage2 = ({ passedCompetitors = [], switchPage }) => {
 
     // Fetch competitor data
     useEffect(() => {
-        // If no competitors are passed, set loading to false
         if (passedCompetitors.length === 0) {
             setLoading(false);
             return;
@@ -41,18 +40,71 @@ const NewsPage2 = ({ passedCompetitors = [], switchPage }) => {
                 
                 const data = await response.json();
                 
-                // Find all matching competitor data
-                const matchedCompetitorData = data.filter(item => 
-                    passedCompetitors.includes(item.competitor)
-                );
-
-                if (matchedCompetitorData.length > 0) {
-                    setCompaniesData(matchedCompetitorData);
-                } else {
-                    // If no matching competitors found, set to empty array
-                    setCompaniesData([]);
-                }
+                // Process the data to match our component's format
+                const processedData = {};
+                const initialTabs = {};
                 
+                data.forEach(item => {
+                    if (passedCompetitors.includes(item.competitor)) {
+                        // Initialize company with empty data structure for all tabs
+                        processedData[item.competitor] = {
+                            'Latest News': {},
+                            'Website Content': {},
+                            'Additional Sources': {},
+                            'Regulatory': {}
+                        };
+                        
+                        // Initialize default active tab
+                        initialTabs[item.competitor] = 'Latest News';
+                        
+                        // Populate Latest News
+                        if (item.latest_news) {
+                            processedData[item.competitor]['Latest News'] = {
+                                id: `latest-news-${item.competitor}`,
+                                topic: item.latest_news.topic,
+                                date: item.latest_news.date,
+                                source: item.latest_news.source,
+                                content: item.latest_news.content
+                            };
+                        }
+                        
+                        // Populate Website Content
+                        if (item.website_content) {
+                            processedData[item.competitor]['Website Content'] = {
+                                id: `website-content-${item.competitor}`,
+                                topic: item.website_content.topic,
+                                date: item.website_content.date,
+                                source: item.website_content.source,
+                                content: item.website_content.content
+                            };
+                        }
+                        
+                        // Populate Additional Sources (first item)
+                        if (item.additional_sources && item.additional_sources.length > 0) {
+                            processedData[item.competitor]['Additional Sources'] = {
+                                id: `additional-sources-${item.competitor}`,
+                                topic: item.additional_sources[0].topic,
+                                date: item.additional_sources[0].date,
+                                source: item.additional_sources[0].source,
+                                content: item.additional_sources[0].content
+                            };
+                        }
+                        
+                        // Populate Regulatory (first item)
+                        if (item.regulatory && item.regulatory.length > 0) {
+                            processedData[item.competitor]['Regulatory'] = {
+                                id: `regulatory-${item.competitor}`,
+                                topic: item.regulatory[0].topic,
+                                date: item.regulatory[0].date,
+                                source: item.regulatory[0].source,
+                                content: item.regulatory[0].content
+                            };
+                        }
+                    }
+                });
+                
+                setCompaniesData(processedData);
+                setActiveTabsByCompany(initialTabs);
                 setLoading(false);
             } catch (err) {
                 console.error('Error fetching competitor data:', err);
@@ -64,37 +116,31 @@ const NewsPage2 = ({ passedCompetitors = [], switchPage }) => {
         fetchCompetitorData();
     }, [passedCompetitors]);
 
+    // Handle tab change for a specific company
+    const handleTabChange = (company, tab) => {
+        setActiveTabsByCompany(prev => ({
+            ...prev,
+            [company]: tab
+        }));
+    };
+
     // Handle adding item to newsletter
-    const handleAddToNewsletter = (companyData, cardConfig) => {
-        let itemData;
-        
-        // Determine the correct data based on the card configuration
-        if (cardConfig.index !== undefined) {
-            // For additional sources and regulatory which are arrays
-            itemData = companyData[cardConfig.dataKey]?.[cardConfig.index];
-        } else {
-            // For latest news and website content which are objects
-            itemData = companyData[cardConfig.dataKey];
-        }
-
-        if (!itemData) return;
-
-        // Create unique ID for the newsletter item
-        const itemId = `${companyData.competitor}-${cardConfig.dataKey}`;
+    const handleAddToNewsletter = (company, tab) => {
+        const itemData = companiesData[company][tab];
         
         // Check if item is already in newsletter
-        const isAlreadyAdded = newsletterItems.some(item => item.id === itemId);
+        const isAlreadyAdded = newsletterItems.some(item => item.id === itemData.id);
         if (isAlreadyAdded) return;
 
         // Create a newsletter item
         const newsletterItem = {
-            id: itemId,
-            company: companyData.competitor,
+            id: itemData.id,
+            company,
             title: itemData.topic,
             date: itemData.date,
             source: itemData.source,
             content: itemData.content,
-            category: cardConfig.title
+            category: tab
         };
 
         // Save to local storage
@@ -114,31 +160,10 @@ const NewsPage2 = ({ passedCompetitors = [], switchPage }) => {
         });
     };
 
-    // Card configurations for different sections
-    const createCardConfigs = () => [
-        {
-            title: "Latest News",
-            path: "Latest News",
-            dataKey: 'latest_news'
-        },
-        {
-            title: "Website Content",
-            path: "Website Content",
-            dataKey: 'website_content'
-        },
-        {
-            title: "Additional Sources",
-            path: "Additional Sources",
-            dataKey: 'additional_sources',
-            index: 0
-        },
-        {
-            title: "Regulatory",
-            path: "Regulatory",
-            dataKey: 'regulatory',
-            index: 0
-        }
-    ];
+    // Get active tab for a specific company
+    const getActiveTab = (company) => {
+        return activeTabsByCompany[company] || 'Latest News';
+    };
 
     // Render loading state
     if (loading) {
@@ -167,71 +192,24 @@ const NewsPage2 = ({ passedCompetitors = [], switchPage }) => {
         );
     }
 
-    // Render when no data is found for selected competitors
-    if (companiesData.length === 0) {
-        return (
-            <div className='bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen p-4 mt-[4rem] flex items-center justify-center'>
-                <p className="text-gray-500">No news data available for selected competitors</p>
-            </div>
-        );
-    }
-
-    // Get the selected data based on active tab
-    const getFilteredData = (companyData) => {
-        const config = createCardConfigs().find(config => config.path === activeTab);
-        if (!config) return null;
-
-        let cardData;
-        if (config.index !== undefined) {
-            // For additional sources and regulatory which are arrays
-            cardData = companyData?.[config.dataKey]?.[config.index];
-        } else {
-            // For latest news and website content which are objects
-            cardData = companyData?.[config.dataKey];
-        }
-
-        return { config, cardData };
-    };
-
     return (
         <div className='bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen p-4 mt-[3.5rem]'>
-            <div className='flex fixed rounded border w-full bg-[#f2f2f0] h-10 justify-center items-center gap-4 p-2 shadow-lg left-0 right-0'>
-                {buttons.map((option, i) => (
-                    <div 
-                        key={i}
-                        onClick={() => setActiveTab(option.path)}
-                        className={`flex px-3 py-1 rounded-md gap-2 items-center cursor-pointer text-sm text-[12px] font-medium
-                            ${activeTab === option.path 
-                                ? "bg-[#004567] text-[#f0f3f7]" 
-                                : "text-gray-800 bg-white hover:bg-[#004567]/80 hover:text-[#f0f3f7]"
-                            }`
-                        }
-                    >
-                        {option.title}
-                    </div>
-                ))}
-            </div>
-
-            <div className='flex flex-wrap py-2 gap-4 mt-[3.5rem]'>
-                {companiesData.map((companyData, companyIndex) => {
-                    const filteredData = getFilteredData(companyData);
-                    if (!filteredData || !filteredData.cardData) return null;
-
-                    const { config, cardData } = filteredData;
-                    const itemId = `${companyData.competitor}-${config.dataKey}`;
-                    const isAlreadyAdded = newsletterItems.some(item => item.id === itemId);
+            <div className='flex flex-wrap py-2 gap-4 mt-[0.5rem] '>
+                {Object.keys(companiesData).map((company) => {
+                    const activeTab = getActiveTab(company);
+                    const activeTabData = companiesData[company][activeTab];
+                    const isAlreadyAdded = newsletterItems.some(item => item.id === activeTabData.id);
 
                     return (
                         <div 
-                            key={companyIndex} 
-                            className='w-[calc(50%-1rem)] rounded-lg border border-gray-300 h-[18rem] bg-white shadow-lg'
+                            key={company} 
+                            className='w-[calc(50%-1rem)] rounded-lg border border-gray-300 h-[20rem] bg-[#8295ae]/50 shadow-lg'
                         >
                             <div className='h-10 bg-[#c98b27] w-full rounded-t-lg flex items-center px-3 justify-between'>
                                 <span className="text-[#FFFFFF] text-sm font-semibold tracking-wider flex-grow">    
-                                    {companyData.competitor} ({activeTab})
+                                    {company}
                                 </span>
                                 <div className='flex gap-2'>
-                                    
                                     <Share2 className='w-4 h-4 text-white cursor-pointer'/>
                                     <button 
                                         onClick={() => switchPage("aivy")}
@@ -242,41 +220,67 @@ const NewsPage2 = ({ passedCompetitors = [], switchPage }) => {
                                 </div>
                             </div>
                    
-                            <div className='flex flex-col gap-1 p-2'>
-                                <div className='flex flex-col bg-[#f0efed] rounded-md w-full p-1 gap-1'>
-                                    <div className='flex w-full justify-between p-1'>
-                                    <span className='font-semibold text-[#004567] text-[12px]'>
-                                            {cardData.topic}
-                                        </span>
-                                        {isAlreadyAdded ? (
-                                            <Check className="text-green-600 w-4 h-4" />
-                                        ) : (
-                                            <div 
-                                                className='rounded-full border border-gray-700 cursor-pointer'
-                                                onClick={() => handleAddToNewsletter(companyData, config)}
-                                            >
-                                                <Plus className='w-4 h-4'/>
-                                            </div>
-                                        )}
-                                    </div>
-                                    
-                                    <div className='flex w-full justify-between'>
-                                        <div className='flex rounded rounded-xl border px-1 items-center border-gray-400 cursor-pointer hover:bg-[#b0b0b0]'>
-                                            <span className='font-md text-gray-700 text-[10px]'>
-                                                {cardData.source}
-                                            </span>
+                            <div className='flex flex-col '>
+                                {/* Tabs for each company */}
+                                <div className='flex w-full bg-[#f2f2f0] h-10 justify-start gap-2 pt-1 px-2'>
+                                    {tabs.map((tab) => (
+                                        <div 
+                                            key={tab}
+                                            onClick={() => handleTabChange(company, tab)}
+                                            className={`flex px-2 py-1 rounded-t-md border-x border-t gap-1 items-center cursor-pointer text-[10px] font-medium
+                                                ${activeTab === tab 
+                                                    ? "bg-[#8295ae]/50 text-gray-700 text-[11px]" 
+                                                    : "text-gray-800 bg-white hover:bg-[#8295ae]/50"
+                                                }`
+                                            }
+                                        >
+                                            {tab}
                                         </div>
+                                    ))}
+                                </div>
 
-                                        <span className='font-md text-gray-700 text-[10px]'>
-                                            {cardData.date}
-                                        </span>
-                                    </div>
+                                <div className='flex flex-col gap-1 p-2 '>
+                                    {activeTabData && Object.keys(activeTabData).length > 0 ? (
+                                        <div className='flex flex-col bg-[#f0efed] rounded-md w-full p-1 gap-1 h-[10rem]'>
+                                            <div className='flex w-full justify-between p-1'>
+                                                <span className='font-semibold text-[#004567] text-[12px]'>
+                                                    {activeTabData.topic || "No topic available"}
+                                                </span>
+                                                {isAlreadyAdded ? (
+                                                    <Check className="text-green-600 w-4 h-4" />
+                                                ) : (
+                                                    <div 
+                                                        className='rounded-full border border-gray-700 cursor-pointer'
+                                                        onClick={() => handleAddToNewsletter(company, activeTab)}
+                                                    >
+                                                        <Plus className='w-4 h-4'/>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            
+                                            <div className='flex w-full justify-between'>
+                                                <div className='flex rounded rounded-xl border px-1 items-center border-gray-400 cursor-pointer hover:bg-[#b0b0b0]'>
+                                                    <span className='font-md text-gray-700 text-[10px]'>
+                                                        {activeTabData.source || "No source"}
+                                                    </span>
+                                                </div>
 
-                                    <div className='flex flex-col gap-1 bg-white w-full p-2'>
-                                        <span className='text-[10px] font-[500] text-gray-700 leading-relaxed'>
-                                            {cardData.content || "No content available"}
-                                        </span>
-                                    </div>
+                                                <span className='font-md text-gray-700 text-[10px]'>
+                                                    {activeTabData.date || "No date"}
+                                                </span>
+                                            </div>
+
+                                            <div className='flex flex-col gap-1 bg-white w-full p-2 h-[10rem] overflow-y-auto'>
+                                                <span className='text-[10px] font-[500] text-gray-700 leading-relaxed'>
+                                                    {activeTabData.content || "No content available"}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className='flex items-center justify-center'>
+                                            <p className="text-gray-500">No {activeTab.toLowerCase()} data available</p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
