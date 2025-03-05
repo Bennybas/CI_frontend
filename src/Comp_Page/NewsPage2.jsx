@@ -203,9 +203,9 @@ const NewsPage2 = ({ passedCompetitors = [], switchPage }) => {
                     return (
                         <div 
                             key={company} 
-                            className='w-[calc(50%-1rem)] rounded-lg border border-gray-300 h-[20rem] bg-[#8295ae]/50 shadow-lg'
+                            className='w-[calc(50%-1rem)] rounded-lg border border-gray-300 h-[20rem] bg-[#d7e4f5]/80 shadow-lg'
                         >
-                            <div className='h-10 bg-[#c98b27] w-full rounded-t-lg flex items-center px-3 justify-between'>
+                            <div className='h-10 bg-[#9bc0e2] w-full rounded-t-lg flex items-center px-3 justify-between'>
                                 <span className="text-[#FFFFFF] text-sm font-semibold tracking-wider flex-grow">    
                                     {company}
                                 </span>
@@ -229,8 +229,8 @@ const NewsPage2 = ({ passedCompetitors = [], switchPage }) => {
                                             onClick={() => handleTabChange(company, tab)}
                                             className={`flex px-2 py-1 rounded-t-md border-x border-t gap-1 items-center cursor-pointer text-[10px] font-medium
                                                 ${activeTab === tab 
-                                                    ? "bg-[#8295ae]/50 text-gray-700 text-[11px]" 
-                                                    : "text-gray-800 bg-white hover:bg-[#8295ae]/50"
+                                                    ? "bg-[#d7e4f5]/80 text-gray-700 text-[11px]" 
+                                                    : "text-gray-800 bg-white hover:bg-[#d7e4f5]/80"
                                                 }`
                                             }
                                         >
@@ -241,7 +241,7 @@ const NewsPage2 = ({ passedCompetitors = [], switchPage }) => {
 
                                 <div className='flex flex-col gap-1 p-2 '>
                                     {activeTabData && Object.keys(activeTabData).length > 0 ? (
-                                        <div className='flex flex-col bg-[#f0efed] rounded-md w-full p-1 gap-1 h-[10rem]'>
+                                        <div className='flex flex-col bg-[#f0efed] rounded-md w-full p-1 gap-1 h-[10rem] border border-[#f0efed]'>
                                             <div className='flex w-full justify-between p-1'>
                                                 <span className='font-semibold text-[#004567] text-[12px]'>
                                                     {activeTabData.topic || "No topic available"}

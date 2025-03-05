@@ -130,7 +130,7 @@ const TherapeuticArea = () => {
                     ))}
                 </div>
             ) : (
-                <div className="text-center text-gray-500 text-lg">No newsletters available</div>
+                <div className="text-center text-gray-500 text-lg"></div>
             )}
         </div>
     );
