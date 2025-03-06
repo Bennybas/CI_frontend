@@ -12,7 +12,11 @@ import NewsPage2 from './NewsPage2';
 
 
 
-const Header = () => {
+const Header = ({setIsLoading}) => {
+
+
+  
+
 
   const navigate = useNavigate();
 
@@ -59,7 +63,7 @@ const Header = () => {
       case "home":
         // return <Competitors passedCompetitors={selectedCompetitors} switchPage={switchPage} />
         // return <NewsPage passedCompetitors={selectedCompetitors} switchPage={switchPage}/>
-        return <NewsPage2 passedCompetitors={selectedCompetitors} switchPage={switchPage}/>
+        return <NewsPage2 passedCompetitors={selectedCompetitors} switchPage={switchPage} setIsLoading={setIsLoading}/>
 
       case "newsletter":
         return <NewsLetter />

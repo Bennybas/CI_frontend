@@ -3,13 +3,23 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { AlignJustify,Check,CircleX } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const CompSelect = () => {
+const CompSelect = ({setIsLoading}) => {
   const [availableCompetitors, setAvailableCompetitors] = useState([]);
   const [selectedCompetitors, setSelectedCompetitors] = useState([]);
   const [newCompetitor, setNewCompetitor] = useState('');
   const [urls, setUrls] = useState({});
 
 const navigate = useNavigate(); 
+
+  useEffect(() => {
+        setIsLoading(true);
+
+        const timer = setTimeout(() => {
+          setIsLoading(false); 
+        }, 1000); 
+    
+        return () => clearTimeout(timer); 
+      }, [setIsLoading]);
 
   useEffect(() => {
     fetch("https://ci-backend-1.onrender.com/api/daily_newsletters")

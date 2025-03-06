@@ -4,11 +4,21 @@ import { CircleX } from 'lucide-react';
 import { fetchNewsletters } from './newsletterApi';
 import Competitors from '../Comp_Page/Competitors';
 
-const TherapeuticArea = () => {
+const TherapeuticArea = ({setIsLoading}) => {
     const [cards, setCards] = useState([]);
     const [error, setError] = useState(null);
     const [flipped, setFlipped] = useState({});
     const navigate = useNavigate(); // Hook for navigation
+
+    useEffect(() => {
+        setIsLoading(true);
+
+        const timer = setTimeout(() => {
+          setIsLoading(false); 
+        }, 1000); 
+    
+        return () => clearTimeout(timer); 
+      }, [setIsLoading]);
 
     useEffect(() => {
         const loadNewsletters = async () => {

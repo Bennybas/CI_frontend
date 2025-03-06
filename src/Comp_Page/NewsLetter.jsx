@@ -3,13 +3,23 @@ import { Trash2, Edit2, Share2, Copy, Save, X, Mail } from 'lucide-react';
 import jsPDF from 'jspdf';
 import axios from 'axios';
 
-const NewsLetter = () => {
+const NewsLetter = ({setIsLoading}) => {
   const [newsletterItems, setNewsletterItems] = useState([]);
   const [editingItem, setEditingItem] = useState(null);
   const [editedContent, setEditedContent] = useState('');
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [emailAddress, setEmailAddress] = useState('');
   const [generatedPdfUrl, setGeneratedPdfUrl] = useState(null);
+
+  // useEffect(() => {
+  //   setIsLoading(true);
+
+  //   const timer = setTimeout(() => {
+  //     setIsLoading(false); 
+  //   }, 1000); 
+
+  //   return () => clearTimeout(timer); 
+  // }, [setIsLoading]);
 
   useEffect(() => {
     // Load newsletter items from local storage

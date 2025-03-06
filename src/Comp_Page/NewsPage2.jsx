@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MessageCircle, Plus, Share2, Check, BrainCog } from 'lucide-react';
 
-const NewsPage2 = ({ passedCompetitors = [], switchPage }) => {
+const NewsPage2 = ({ passedCompetitors = [], switchPage,setIsLoading }) => {
     const [companiesData, setCompaniesData] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -166,14 +166,16 @@ const NewsPage2 = ({ passedCompetitors = [], switchPage }) => {
     };
 
     // Render loading state
-    if (loading) {
-        return (
-            <div className='bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen p-4 mt-[4rem] flex items-center justify-center'>
-                <p className="text-gray-500">Loading news data...</p>
-            </div>
-        );
-    }
-
+    useEffect(() => {
+        setIsLoading(true);
+    
+        const timer = setTimeout(() => {
+          setIsLoading(false); 
+        }, 1000); 
+    
+        return () => clearTimeout(timer); 
+      }, [setIsLoading]);
+    
     // Render error state
     if (error) {
         return (
@@ -193,7 +195,7 @@ const NewsPage2 = ({ passedCompetitors = [], switchPage }) => {
     }
 
     return (
-        <div className='bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen p-4 mt-[3.5rem]'>
+        <div className='bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen p-4 mt-[3.8rem]'>
             <div className='flex flex-wrap py-2 gap-4 mt-[0.5rem] '>
                 {Object.keys(companiesData).map((company) => {
                     const activeTab = getActiveTab(company);
@@ -203,21 +205,26 @@ const NewsPage2 = ({ passedCompetitors = [], switchPage }) => {
                     return (
                         <div 
                             key={company} 
-                            className='w-[calc(50%-1rem)] rounded-lg border border-gray-300 h-[20rem] bg-[#d7e4f5]/80 shadow-lg'
+                            className='w-[calc(50%-1rem)] rounded-lg border border-gray-300 h-[20rem] bg-[#d7e4f5]/80'
                         >
                             <div className='h-10 bg-[#9bc0e2] w-full rounded-t-lg flex items-center px-3 justify-between'>
                                 <span className="text-[#FFFFFF] text-sm font-semibold tracking-wider flex-grow">    
                                     {company}
                                 </span>
-                                <div className='flex gap-2'>
-                                    <Share2 className='w-4 h-4 text-white cursor-pointer'/>
+                                <div className="flex gap-2">
                                     <button 
                                         onClick={() => switchPage("aivy")}
-                                        className="focus:outline-none"
+                                        className="relative group focus:outline-none"
                                     >
-                                        <BrainCog className='w-4 h-4 text-white cursor-pointer'/>
+                                        <BrainCog className="w-4 h-4 text-white cursor-pointer"/>
+                                        
+                                        {/* Tooltip */}
+                                        <span className="absolute left-8 -translate-x-1/2 bottom-2 bg-black text-white text-xs px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                            Ask AIVY
+                                        </span>
                                     </button>
                                 </div>
+
                             </div>
                    
                             <div className='flex flex-col '>

@@ -11,14 +11,12 @@ function App() {
     const [isLoading, setIsLoading] = useState(false); 
     return (
         <Router>
+             {isLoading && <LoadingSpinner />} 
             <Routes>
-                <Route path="/" element={<TherapeuticArea />} />
-                <Route path="/competitors_page" element={<CompSelect />} />
-
-                <Route path="/header" element={<Header/>} />
-                <Route path="/newsletter" element={<NewsLetter />} />
-               
-                
+                <Route path="/" element={<TherapeuticArea setIsLoading={setIsLoading}  />} />
+                <Route path="/competitors_page" element={<CompSelect setIsLoading={setIsLoading} />} />
+                <Route path="/header" element={<Header setIsLoading={setIsLoading} />} />
+                <Route path="/newsletter" element={<NewsLetter setIsLoading={setIsLoading} />} />
             </Routes>
         </Router>
     );
