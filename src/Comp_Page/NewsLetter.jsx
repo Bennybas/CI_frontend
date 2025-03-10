@@ -3,6 +3,9 @@ import { Trash2, Edit2, Share2, Copy, Save, X, Mail } from 'lucide-react';
 import jsPDF from 'jspdf';
 import axios from 'axios';
 
+
+const API_URL = process.env.REACT_APP_API_URL || 'https://ci-backend-1.onrender.com';
+
 const NewsLetter = ({setIsLoading}) => {
   const [newsletterItems, setNewsletterItems] = useState([]);
   const [editingItem, setEditingItem] = useState(null);
@@ -10,16 +13,6 @@ const NewsLetter = ({setIsLoading}) => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [emailAddress, setEmailAddress] = useState('');
   const [generatedPdfUrl, setGeneratedPdfUrl] = useState(null);
-
-  // useEffect(() => {
-  //   setIsLoading(true);
-
-  //   const timer = setTimeout(() => {
-  //     setIsLoading(false); 
-  //   }, 1000); 
-
-  //   return () => clearTimeout(timer); 
-  // }, [setIsLoading]);
 
   useEffect(() => {
     // Load newsletter items from local storage
@@ -32,7 +25,7 @@ const NewsLetter = ({setIsLoading}) => {
     
     try {
       // Load the background image
-      const imgPath = '/png/pdfbg.png';
+      const imgPath = '/png/pdfheader.png';
       const response = await fetch(imgPath);
       const blob = await response.blob();
       const imgData = await new Promise((resolve) => {
@@ -73,7 +66,7 @@ const NewsLetter = ({setIsLoading}) => {
         const splitContent = doc.splitTextToSize(item.content, 180);
         doc.text(splitContent, 14, yPosition);
         
-        // Add page break if not the last item
+
         if (index < newsletterItems.length - 1) {
           doc.addPage();
           // Add image to subsequent pages if needed
@@ -110,9 +103,11 @@ const NewsLetter = ({setIsLoading}) => {
       alert('Please enter a valid email address');
       return;
     }
+    
+    if (setIsLoading) setIsLoading(true);
 
     try {
-      const response = await axios.post('https://ci-backend-1.onrender.com/api/send_newsletter_email', {
+      const response = await axios.post(`${API_URL}/api/send_newsletter_email`, {
         email: emailAddress,
         subject: 'Newsletter Items',
         pdfDataUri: generatedPdfUrl
@@ -127,6 +122,8 @@ const NewsLetter = ({setIsLoading}) => {
     } catch (error) {
       console.error('Error sending email:', error);
       alert('Failed to send email. Please try again.');
+    } finally {
+      if (setIsLoading) setIsLoading(false);
     }
   };
 

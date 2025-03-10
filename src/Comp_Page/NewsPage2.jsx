@@ -205,31 +205,47 @@ const NewsPage2 = ({ passedCompetitors = [], switchPage,setIsLoading }) => {
                     return (
                         <div 
                             key={company} 
-                            className='w-[calc(50%-1rem)] rounded-lg border border-gray-300 h-[20rem] bg-[#d7e4f5]/80'
+                            className='w-[calc(50%-1rem)] rounded-lg border-b-[1.5px] border-x border-l-[1.5px] border-gray-200 h-[20rem] shadow-md bg-white'
                         >
-                            <div className='h-10 bg-[#9bc0e2] w-full rounded-t-lg flex items-center px-3 justify-between'>
+                            <div className='h-10 bg-[#0f6691] w-full rounded-t-lg flex items-center px-3 justify-between'>
+                                <div>
                                 <span className="text-[#FFFFFF] text-sm font-semibold tracking-wider flex-grow">    
                                     {company}
                                 </span>
-                                <div className="flex gap-2">
+                                </div>
+                                
+                                {/* <div className='flex justify-center items-center gap-2 pt-2'> 
+                                {tabs.map((tab) => (
+                                        <div 
+                                            key={tab}
+                                            onClick={() => handleTabChange(company, tab)}
+                                            className={`flex px-2 py-2 rounded-t-md border-x border-t gap-1 items-center cursor-pointer text-[10px] font-medium
+                                                ${activeTab === tab 
+                                                    ? "bg-[#d7e4f5]/80 text-gray-700 text-[11px]" 
+                                                    : "text-gray-800 bg-white hover:bg-[#d7e4f5]/80"
+                                                }`
+                                            }
+                                        >
+                                            {tab}
+                                        </div>
+                                    ))}
+                                </div> */}
+                                <div className="flex gap-1 items-center rounded-lg border p-1">
+                                    <span className='text-[8px] text-white'>ASK AIVY</span>
                                     <button 
                                         onClick={() => switchPage("aivy")}
                                         className="relative group focus:outline-none"
                                     >
-                                        <BrainCog className="w-4 h-4 text-white cursor-pointer"/>
-                                        
-                                        {/* Tooltip */}
-                                        <span className="absolute left-8 -translate-x-1/2 bottom-2 bg-black text-white text-xs px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                            Ask AIVY
-                                        </span>
+                                        <Share2 className="w-3 h-3 text-white cursor-pointer"/>
                                     </button>
                                 </div>
 
                             </div>
+
+                           
                    
-                            <div className='flex flex-col '>
-                                {/* Tabs for each company */}
-                                <div className='flex w-full bg-[#f2f2f0] h-10 justify-start gap-2 pt-1 px-2'>
+                            <div className='flex flex-col rounded-xl bg-white'>
+                            <div className='flex w-full bg-[#f2f2f0] h-10 justify-start gap-2 pt-1 px-2'>
                                     {tabs.map((tab) => (
                                         <div 
                                             key={tab}
@@ -254,7 +270,11 @@ const NewsPage2 = ({ passedCompetitors = [], switchPage,setIsLoading }) => {
                                                     {activeTabData.topic || "No topic available"}
                                                 </span>
                                                 {isAlreadyAdded ? (
+                                                    <div className='flex items-center gap-1'>
+
+                                                    <span className='text-[8px]'>Added to NewsLetter</span>
                                                     <Check className="text-green-600 w-4 h-4" />
+                                                    </div>
                                                 ) : (
                                                     <div 
                                                         className='rounded-full border border-gray-700 cursor-pointer'
@@ -290,7 +310,8 @@ const NewsPage2 = ({ passedCompetitors = [], switchPage,setIsLoading }) => {
                                     )}
                                 </div>
                             </div>
-                        </div>
+                            </div>
+
                     );
                 })}
             </div>
