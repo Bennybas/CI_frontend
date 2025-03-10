@@ -205,9 +205,9 @@ const NewsPage2 = ({ passedCompetitors = [], switchPage,setIsLoading }) => {
                     return (
                         <div 
                             key={company} 
-                            className='w-[calc(50%-1rem)] rounded-lg border-b-[1.5px] border-x border-l-[1.5px] border-gray-200 h-[20rem] shadow-md bg-white'
+                            className='w-[calc(50%-1rem)] rounded-lg border-b-[1.5px] border-x border-l-[1.5px] border-gray-200 h-[20rem]  bg-white'
                         >
-                            <div className='h-10 bg-[#0f6691] w-full rounded-t-lg flex items-center px-3 justify-between'>
+                            <div className='h-10 bg-gradient-to-r from-[#0f6691] to-[#0b4c6b] w-full rounded-t-lg flex items-center px-3 justify-between'>
                                 <div>
                                 <span className="text-[#FFFFFF] text-sm font-semibold tracking-wider flex-grow">    
                                     {company}
@@ -230,13 +230,15 @@ const NewsPage2 = ({ passedCompetitors = [], switchPage,setIsLoading }) => {
                                         </div>
                                     ))}
                                 </div> */}
-                                <div className="flex gap-1 items-center rounded-lg border p-1">
-                                    <span className='text-[8px] text-white'>ASK AIVY</span>
+                                <div 
+                                 onClick={() => switchPage("aivy")}
+                                className="flex items-center justify-between rounded-md border py-1 px-1 cursor-pointer">
+                                    <span className='text-[8px] text-white pl-1'>ASK AIVY</span>
                                     <button 
-                                        onClick={() => switchPage("aivy")}
+                                       
                                         className="relative group focus:outline-none"
                                     >
-                                        <Share2 className="w-3 h-3 text-white cursor-pointer"/>
+                                        <Share2 className="w-[10x] h-[10px] text-white "/>
                                     </button>
                                 </div>
 
