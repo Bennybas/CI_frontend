@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import NewsPage from './NewsPage';
 import NewsCard from './NewsCard';
 import NewsPage2 from './NewsPage2';
+import NewsPage3 from './NewsPage3';
 
 
 
@@ -63,8 +64,8 @@ const Header = ({setIsLoading}) => {
       case "home":
         // return <Competitors passedCompetitors={selectedCompetitors} switchPage={switchPage} />
         // return <NewsPage passedCompetitors={selectedCompetitors} switchPage={switchPage}/>
-        return <NewsPage2 passedCompetitors={selectedCompetitors} switchPage={switchPage} setIsLoading={setIsLoading}/>
-
+        // return <NewsPage2 passedCompetitors={selectedCompetitors} switchPage={switchPage} setIsLoading={setIsLoading}/>
+        return <NewsPage3 passedCompetitors={selectedCompetitors} switchPage={switchPage} setIsLoading={setIsLoading}/>
       case "newsletter":
         return <NewsLetter />
         case "aivy":
@@ -75,7 +76,7 @@ const Header = ({setIsLoading}) => {
     <div>
     
     <div className="bg-gray-50 fixed top-0 left-0 w-full z-10">
-      <header className="bg-white text-gray-600 flex items-center justify-between px-6 py-3 border-b border-gray-200 shadow-sm">
+      <header className="bg-white text-gray-600 flex items-center justify-between px-6 py-3 border-b border-gray-200 ">
         {/* Logo Section */}
         <img
           src="/chryselys.png"
@@ -120,7 +121,7 @@ const Header = ({setIsLoading}) => {
 
    
      
-      <main >{renderContent()}</main>
+      <main className='mt-[4.3rem]'>{renderContent()}</main>
     </div>
   );
 }

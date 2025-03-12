@@ -238,7 +238,7 @@ const NewsPage2 = ({ passedCompetitors = [], switchPage,setIsLoading }) => {
                                        
                                         className="relative group focus:outline-none"
                                     >
-                                        <Share2 className="w-[10x] h-[10px] text-white "/>
+                                        <img src="/png/aivy.png" alt="AIVY" className="h-4 w-auto ml-2" />
                                     </button>
                                 </div>
 
