@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2, Edit2, Share2, Copy, Save, X, Mail } from 'lucide-react';
+import { Trash2, Edit2, Eye, Save, X, Mail } from 'lucide-react';
 import jsPDF from 'jspdf';
 import axios from 'axios';
-
 
 const API_URL = process.env.REACT_APP_API_URL || 'https://ci-backend-1.onrender.com';
 
@@ -12,7 +11,10 @@ const NewsLetter = ({setIsLoading}) => {
   const [editedContent, setEditedContent] = useState('');
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [emailAddress, setEmailAddress] = useState('');
+  const [emailMessage, setEmailMessage] = useState('');
   const [generatedPdfUrl, setGeneratedPdfUrl] = useState(null);
+  const [sendingStatus, setSendingStatus] = useState('');
+  const [showEmailForm, setShowEmailForm] = useState(false);
 
   useEffect(() => {
     // Load newsletter items from local storage
@@ -34,7 +36,7 @@ const NewsLetter = ({setIsLoading}) => {
         reader.readAsDataURL(blob);
       });
 
-      // Add image to the first page
+      // Add image only to the first page
       doc.addImage(imgData, 'PNG', 10, 10, 190, 50);
 
       // Set initial y-position after the image
@@ -46,7 +48,31 @@ const NewsLetter = ({setIsLoading}) => {
       doc.text('Newsletter Items', 14, yPosition);
       yPosition += 15;
       
-      newsletterItems.forEach((item, index) => {
+      // Maximum y-position before we need a new page (with some margin)
+      const maxYPosition = 280;
+      
+      for (let i = 0; i < newsletterItems.length; i++) {
+        const item = newsletterItems[i];
+        
+        // Calculate height needed for this item
+        let itemHeight = 0;
+        
+        // Title height
+        itemHeight += 10; // Title + spacing
+        
+        // Metadata height
+        itemHeight += 6 + 8; // Two rows of metadata + spacing
+        
+        // Content height
+        const splitContent = doc.splitTextToSize(item.content, 180);
+        itemHeight += splitContent.length * 7 + 10; // Content + spacing
+        
+        // Check if we need a new page
+        if (yPosition + itemHeight > maxYPosition) {
+          doc.addPage();
+          yPosition = 20; // Reset position at top of new page (no header image)
+        }
+        
         // Title
         doc.setFontSize(14);
         doc.setTextColor(139, 69, 19);
@@ -63,19 +89,9 @@ const NewsLetter = ({setIsLoading}) => {
         
         // Content
         doc.setFontSize(12);
-        const splitContent = doc.splitTextToSize(item.content, 180);
         doc.text(splitContent, 14, yPosition);
-        
-
-        if (index < newsletterItems.length - 1) {
-          doc.addPage();
-          // Add image to subsequent pages if needed
-          doc.addImage(imgData, 'PNG', 10, 10, 190, 50);
-          yPosition = 70;
-        }
-        
-        yPosition += splitContent.length * 7 + 10;
-      });
+        yPosition += splitContent.length * 7 + 15; // Extra spacing between items
+      }
       
       const pdfDataUri = doc.output('datauristring');
       setGeneratedPdfUrl(pdfDataUri);
@@ -83,45 +99,58 @@ const NewsLetter = ({setIsLoading}) => {
 
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert('Failed to generate PDF. Please try again.');
+      setSendingStatus('Failed to generate PDF. Please try again.');
     }
   };
 
   const handleOpenShareModal = () => {
+    setSendingStatus('');
     setIsShareModalOpen(true);
+    setShowEmailForm(false);
   };
 
   const handleCloseShareModal = () => {
     setIsShareModalOpen(false);
     setEmailAddress('');
+    setEmailMessage('');
     setGeneratedPdfUrl(null);
+    setSendingStatus('');
+    setShowEmailForm(false);
+  };
+
+  const handleShowEmailForm = () => {
+    setShowEmailForm(true);
   };
 
   const handleSendEmail = async () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(emailAddress)) {
-      alert('Please enter a valid email address');
+      setSendingStatus('Please enter a valid email address');
       return;
     }
     
     if (setIsLoading) setIsLoading(true);
+    setSendingStatus('Sending...');
 
     try {
       const response = await axios.post(`${API_URL}/api/send_newsletter_email`, {
         email: emailAddress,
         subject: 'Newsletter Items',
+        message: emailMessage,
         pdfDataUri: generatedPdfUrl
       });
 
       if (response.data.success) {
-        alert('Email sent successfully!');
-        handleCloseShareModal();
+        setSendingStatus('Email sent successfully!');
+        setTimeout(() => {
+          handleCloseShareModal();
+        }, 2000);
       } else {
         throw new Error('Failed to send email');
       }
     } catch (error) {
       console.error('Error sending email:', error);
-      alert('Failed to send email. Please try again.');
+      setSendingStatus('Failed to send email. Please try again.');
     } finally {
       if (setIsLoading) setIsLoading(false);
     }
@@ -155,7 +184,7 @@ const NewsLetter = ({setIsLoading}) => {
   return (
     <div className="container mx-auto p-4 mt-[4rem]">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-amber-900">Newsletter</h1>
+        <h1 className="text-xl font-bold text-amber-900">Newsletter</h1>
         <div className="flex items-center space-x-4">
           <div className="text-sm text-gray-600">
             Total Items: {newsletterItems.length}
@@ -165,7 +194,7 @@ const NewsLetter = ({setIsLoading}) => {
               onClick={generatePDF}
               className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-2 rounded-lg flex items-center text-sm"
             >
-              <Share2 className="w-4 h-4 mr-2"/> Share All
+             <Eye className="w-4 h-4 mr-2"/> Preview
             </button>
           )}
         </div>
@@ -222,7 +251,7 @@ const NewsLetter = ({setIsLoading}) => {
               ) : (
                 <div>
                   <div className="flex justify-between items-start mb-2">
-                    <h2 className="text-lg font-bold text-gray-900">{item.title}</h2>
+                    <h2 className="text-md font-bold text-gray-900">{item.title}</h2>
                     <div className="flex space-x-2">
                       <button 
                         onClick={() => handleEditItem(item)}
@@ -260,9 +289,9 @@ const NewsLetter = ({setIsLoading}) => {
       {/* Share Modal */}
       {isShareModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg w-full max-w-md p-6 space-y-4">
+          <div className="bg-white rounded-lg w-full max-w-xl p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold text-amber-900">Share Newsletter</h2>
+              <h2 className="text-xl font-bold text-amber-900">Newsletter Preview</h2>
               <button 
                 onClick={handleCloseShareModal}
                 className="text-gray-500 hover:text-gray-700"
@@ -271,47 +300,68 @@ const NewsLetter = ({setIsLoading}) => {
               </button>
             </div>
 
+            {/* Larger PDF Preview */}
             {generatedPdfUrl && (
-              <div className="mb-4">
+              <div className="my-4">
                 <iframe 
                   src={generatedPdfUrl} 
                   width="100%" 
-                  height="200" 
+                  height="400" 
                   className="border rounded-lg"
                 />
               </div>
             )}
-
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="email"
-                placeholder="Enter email address"
-                value={emailAddress}
-                onChange={(e) => setEmailAddress(e.target.value)}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
-              />
-            </div>
-
-            <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg max-h-40 overflow-y-auto">
-              <p className="font-medium mb-2">Items to be shared:</p>
-              {newsletterItems.map(item => (
-                <div key={item.id} className="mb-2 last:mb-0">
-                  <p className="text-xs">
-                    <span className="font-semibold">{item.title}</span>
-                    <span className="ml-2 text-gray-500">{item.company}</span>
-                  </p>
+            
+            {!showEmailForm ? (
+              <button
+                onClick={handleShowEmailForm}
+                className="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg font-medium flex items-center justify-center"
+              >
+                <Mail className="w-5 h-5 mr-2"/> Share Newsletter
+              </button>
+            ) : (
+              <div className="space-y-4 mt-4">
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    type="email"
+                    placeholder="Enter email address"
+                    value={emailAddress}
+                    onChange={(e) => setEmailAddress(e.target.value)}
+                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
                 </div>
-              ))}
-            </div>
 
-            <button
-              onClick={handleSendEmail}
-              className="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg font-medium"
-              disabled={!emailAddress}
-            >
-              Send Newsletter
-            </button>
+                <div>
+                  <textarea
+                    placeholder="Add a message (optional)"
+                    value={emailMessage}
+                    onChange={(e) => setEmailMessage(e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 min-h-[100px]"
+                  />
+                </div>
+
+                <button
+                  onClick={handleSendEmail}
+                  className="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg font-medium mb-4"
+                  disabled={!emailAddress}
+                >
+                  Send Newsletter
+                </button>
+                
+                {sendingStatus && (
+                  <div className={`text-center p-2 rounded-lg ${
+                    sendingStatus.includes('successfully') 
+                      ? 'bg-green-100 text-green-700' 
+                      : sendingStatus === 'Sending...'
+                      ? 'bg-amber-100 text-amber-700'
+                      : 'bg-red-100 text-red-700'
+                  }`}>
+                    {sendingStatus}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
